@@ -1,0 +1,33 @@
+{
+    "1": {
+        "role": "PublicWAN",
+        "type": "DHCP"
+    },
+    "2": {
+        "role": "PublicWAN",
+        "dns1": "8.8.8.8",
+        "type": "STATIC",
+        "gateway": "10.0.0.254",
+        "address": "10.0.0.1/24"
+    },
+    "3": {
+        "role": "PublicWAN",
+        "type": "DHCP"
+    },
+    "4": {
+        "role": "ByPass1WAN"
+    },
+    "Controller 1": {
+        "type": "DHCP"
+    },
+    "License": {
+        "secret": "3aca3f3cbae4792d7ca30c4841f71bf8e246e65c",
+        "key": "120-2e4606d5-da92-4376-98c3-cbc08fcee8a5"
+    },
+    "General": {
+        "model": "ion 3104v"
+    },
+    "5": {
+        "role": "Bypass1LAN"
+    }
+}
