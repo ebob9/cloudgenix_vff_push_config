@@ -22,11 +22,12 @@ try:
     import pexpect
     import pexpect.pxssh
 except ImportError as e:
-    print e
+    print(e)
     pexpect = False
 
 # Globals
 CONFIG_PROMPT_READY = "Choose a Number or (Q)uit:"
+CONFIG_HIDDEN_MENU_ITEM = "Read RAW config from STDIN"
 CONFIG_PUSH_READY = "End entry with <ENTER>EOM<ENTER>."
 CONFIG_PUSH_SUCCESS = "Building configuration..."
 SERIAL_DEFAULT_BAUDRATE = 115200
@@ -97,7 +98,22 @@ def do_serial():
         print("[VFF_PUSH_SERIAL] Setting up config push.")
         serial_con.write("hidden\n")
         sleep(1)  # wait in case of baud issues.
-        serial_con.write("9\n")
+        input_data = serial_con.read(serial_con.inWaiting())
+        data_l = input_data.split("\n")
+        parseline = []
+        for line in data_l:
+            if CONFIG_HIDDEN_MENU_ITEM in line:
+                print("[VFF_PUSH_SERIAL] {0} Got RAW hidden menu prompt. Continuing.".format(wait_count))
+                parseline = line.split(")")
+        if parseline:
+            print("[VFF_PUSH_SERIAL] Sending option{0}".format(parseline[0]))
+            serial_con.write(parseline[0] + "\n")
+        else:
+            print("[VFF_PUSH_SERIAL] ERROR: Did not get RAW hidden menu prompt"
+                  " ready prompt. Last input buffer: \n{0}\n".format(input_data))
+            print("[VFF_PUSH_SERIAL] ERROR: End input buffer. Exiting.")
+            sys.exit(1)
+
         sleep(1)  # wait in case of baud issues.
         # read the waiting buffer
         input_data = serial_con.read(serial_con.inWaiting())
@@ -111,7 +127,7 @@ def do_serial():
 
         # send config file.
         serial_con.write(CONFIG_FILE_DATA)
-        sleep(1)   # wait in case of baud issues.
+        sleep(1)  # wait in case of baud issues.
         serial_con.write("\nEOM\n")
         sleep(1)  # wait in case of baud issues.
         # read the waiting buffer
@@ -174,7 +190,22 @@ def do_telnet(host, port):
     print("[VFF_PUSH_TELNET] Setting up config push.")
     telnet_con.write("hidden\n")
     sleep(1)  # wait in case of baud issues.
-    telnet_con.write("9\n")
+    input_data = telnet_con.read_until(CONFIG_PROMPT_READY, timeout=TELNET_DEFAULT_WAIT)
+    data_l = input_data.split("\n")
+    parseline = []
+    for line in data_l:
+        if CONFIG_HIDDEN_MENU_ITEM in line:
+            print("[VFF_PUSH_TELNET] {0} Got RAW hidden menu prompt. Continuing.".format(wait_count))
+            parseline = line.split(")")
+    if parseline:
+        print("[VFF_PUSH_TELNET] Sending option{0}".format(parseline[0]))
+        telnet_con.write(parseline[0] + "\n")
+    else:
+        print("[VFF_PUSH_TELNET] ERROR: Did not get RAW hidden menu prompt"
+              " ready prompt. Last input buffer: \n{0}\n".format(input_data))
+        print("[VFF_PUSH_TELNET] ERROR: End input buffer. Exiting.")
+        sys.exit(1)
+
     sleep(1)  # wait in case of baud issues.
     # read the waiting buffer
     input_data = telnet_con.read_until(CONFIG_PUSH_READY, timeout=TELNET_DEFAULT_WAIT)
@@ -188,7 +219,7 @@ def do_telnet(host, port):
 
     # send config file.
     telnet_con.write(CONFIG_FILE_DATA)
-    sleep(1)   # wait in case of baud issues.
+    sleep(1)  # wait in case of baud issues.
     telnet_con.write("\nEOM\n")
     sleep(1)  # wait in case of baud issues.
     # read the waiting buffer
@@ -224,7 +255,6 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
         sleep(pex_default_wait * .20)  # 1/5 of default wait
         # wait for the prompt.
         input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
-
         # parse response and see if we are at VFF prompt.
         if CONFIG_PROMPT_READY in input_data:
             print("[VFF_PUSH_{0}] {1} Got config prompt. Continuing.".format(ntype, wait_count))
@@ -247,7 +277,22 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
     print("[VFF_PUSH_{0}] Setting up config push.".format(ntype))
     pexpect_con.send("hidden\n")
     sleep(1)  # wait in case of baud issues.
-    pexpect_con.send("9\n")
+    input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+    data_l = input_data.split("\n")
+    parseline = []
+    for line in data_l:
+        if CONFIG_HIDDEN_MENU_ITEM in line:
+            print("[VFF_PUSH_{0}] {1} Got RAW hidden menu prompt. Continuing.".format(ntype, wait_count))
+            parseline = line.split(")")
+    if parseline:
+        print("[VFF_PUSH_{0}] Sending option{1}".format(ntype, parseline[0]))
+        pexpect_con.send(parseline[0] + "\n")
+    else:
+        print("[VFF_PUSH_{0}] ERROR: Did not get RAW hidden menu prompt"
+              " ready prompt. Last input buffer: \n{1}\n".format(ntype, input_data))
+        print("[VFF_PUSH_{0}] ERROR: End input buffer. Exiting.".format(ntype))
+        sys.exit(1)
+
     # read the waiting buffer
     input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
 
@@ -261,7 +306,7 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
 
     # send config file.
     pexpect_con.send(CONFIG_FILE_DATA)
-    sleep(1)   # wait in case of baud issues.
+    sleep(1)  # wait in case of baud issues.
     pexpect_con.send("\nEOM\n")
 
     # read the waiting buffer
@@ -287,14 +332,14 @@ def go():
     global ARGS
     # Start program.
     parser = argparse.ArgumentParser(description="CloudGenix VFF Push Config Client.")
-    subparsers = parser.add_subparsers(dest="parser_name", metavar="[commands]")
+    subparsers = parser.add_subparsers(dest="serial,telnet,virsh, or ssh", metavar="[commands]")
+    subparsers.required = True
 
     # Serial logic
     serial_parser = subparsers.add_parser('serial', help='Connect via serial PTY device file')
     serial_parser.add_argument("--pty", help="PTY File to connect to", required=False,
                                default="/dev/pts/0")
-    serial_parser.add_argument('--file', required=True, help='VFF Config file location (in INI, YAML or JSON format).',
-                               type=str)
+    serial_parser.add_argument('--file', required=True, help='VFF Config/INI/YAML or JSON file location.', type=str)
     # debug_serial = serial_parser.add_argument_group('Debug', 'These options enable debugging output')
     # debug_serial.add_argument("--debug", help="Verbose Debug info, levels 0-2",
     #                           default=0)
@@ -305,8 +350,7 @@ def go():
                                default="127.0.0.1")
     telnet_parser.add_argument("--port", help="TCP port to connect to", required=False,
                                default="4000")
-    telnet_parser.add_argument('--file', required=True, help='VFF Config file location (in INI, YAML or JSON format).',
-                               type=str)
+    telnet_parser.add_argument('--file', required=True, help='VFF Config/INI/YAML or JSON file location.', type=str)
     # debug_telnet = telnet_parser.add_argument_group('Debug', 'These options enable debugging output')
     # debug_telnet.add_argument("--debug", help="Verbose Debug info, levels 0-2",
     #                           default=0)
@@ -314,9 +358,8 @@ def go():
     # VIRSH logic
     virsh_parser = subparsers.add_parser('virsh', help='Connect via VIRSH console')
     virsh_parser.add_argument("--domain", help="domain/VM name to connect to", required=True,
-                            default="ION")
-    virsh_parser.add_argument('--file', required=True, help='VFF Config file location (in INI, YAML or JSON format).',
-                              type=str)
+                              default="ION")
+    virsh_parser.add_argument('--file', required=True, help='VFF Config/INI/YAML or JSON file location.', type=str)
     # debug_virsh = virsh_parser.add_argument_group('Debug', 'These options enable debugging output')
     # debug_virsh.add_argument("--debug", help="Verbose Debug info, levels 0-2",
     #                        default=0)
@@ -330,14 +373,11 @@ def go():
     ssh_parser.add_argument("--user", help="Username for SSH", required=False,
                             default="virtualsetup")
     ssh_auth = ssh_parser.add_mutually_exclusive_group()
-    ssh_auth.add_argument("--pass", help="Password for SSH authentication",
-                          type=str,
+    ssh_auth.add_argument("--pass", help="Password for SSH authentication", type=str,
                           default='')
-    ssh_auth.add_argument("--privkey", help="Path to private Key for SSH authentication",
-                          type=str,
+    ssh_auth.add_argument("--privkey", help="Path to private Key for SSH authentication", type=str,
                           default=None)
-    ssh_parser.add_argument('--file', required=True, help='VFF Config file location (in INI, YAML or JSON format).',
-                            type=str)
+    ssh_parser.add_argument('--file', required=True, help='VFF Config/INI/YAML or JSON file location.', type=str)
     # debug_ssh = ssh_parser.add_argument_group('Debug', 'These options enable debugging output')
     # debug_ssh.add_argument("--debug", help="Verbose Debug info, levels 0-2",
     #                        default=0)
@@ -366,8 +406,9 @@ def go():
     if ARGS['parser_name'] == 'serial':
         # serial requested
         if not serial:
-            print("[VFF_PUSH_SERIAL] ERROR: Serial requested but could not load 'PySerial' module. "
-                  "Please add to system. Exiting.")
+            print(
+                "[VFF_PUSH_SERIAL] ERROR: Serial requested but could not load 'PySerial' module. Please add to system."
+                "Exiting.")
             exit(1)
         do_serial()
 
@@ -393,8 +434,8 @@ def go():
                   "Exiting.")
             exit(1)
         pex_obj = pexpect.pxssh.pxssh(options={
-                                        "StrictHostKeyChecking": "no",
-                                        "UserKnownHostsFile": "/dev/null"})
+            "StrictHostKeyChecking": "no",
+            "UserKnownHostsFile": "/dev/null"})
         if ARGS['privkey']:
             privkey_stat = "Yes"
         else:
