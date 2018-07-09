@@ -43,6 +43,8 @@ SSH_DEFAULT_TIMEOUT = 30  # seconds
 SSH_DEFAULT_WAIT = 10  # seconds per poll for prompt.
 SSH_DEFAULT_WAIT_LIMIT = 30  # x SERIAL_DEFAULT_WAIT seconds
 
+
+
 # dynamic Globals
 CONFIG_FILE_DATA = ""
 ARGS = {}
@@ -330,9 +332,10 @@ def go():
     :return: No return
     """
     global ARGS
+    global CONFIG_FILE_DATA
     # Start program.
     parser = argparse.ArgumentParser(description="CloudGenix VFF Push Config Client.")
-    subparsers = parser.add_subparsers(dest="serial,telnet,virsh, or ssh", metavar="[commands]")
+    subparsers = parser.add_subparsers(dest="parser_name", metavar="[commands]")
     subparsers.required = True
 
     # Serial logic

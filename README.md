@@ -90,5 +90,6 @@ MIT
 #### Version
 Version | Changes
 ------- | --------
+**1.1.1**| Fix parser_type and global config file data
 **1.1.0**| Updated with Dynamic menu item support, and minor fixes.
 **1.0.0**| Initial Release.

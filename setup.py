@@ -4,7 +4,7 @@ with open('README.md') as f:
     long_description = f.read()
 
 setup(name='cloudgenix_vff_push_config',
-      version='1.1.0',
+      version='1.1.1',
       description='Virtual Form Factor Config Push for CloudGenix',
       long_description=long_description,
       long_description_content_type='text/markdown',
