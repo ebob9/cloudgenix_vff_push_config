@@ -78,6 +78,9 @@ def do_serial():
             sleep(SERIAL_DEFAULT_WAIT * .20)  # 1/5 of default wait
             # read the waiting buffer
             input_data = serial_con.read(serial_con.inWaiting())
+            if isinstance(input_data, bytes):
+                input_data = input_data.decode('UTF-8')
+
             # parse response and see if we are at VFF prompt.
             if CONFIG_PROMPT_READY in input_data:
                 print("[VFF_PUSH_SERIAL] {0} Got config prompt. Continuing.".format(wait_count))
@@ -101,6 +104,9 @@ def do_serial():
         serial_con.write("hidden\n")
         sleep(1)  # wait in case of baud issues.
         input_data = serial_con.read(serial_con.inWaiting())
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
+
         data_l = input_data.split("\n")
         parseline = []
         for line in data_l:
@@ -119,6 +125,8 @@ def do_serial():
         sleep(1)  # wait in case of baud issues.
         # read the waiting buffer
         input_data = serial_con.read(serial_con.inWaiting())
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
 
         if CONFIG_PUSH_READY not in input_data:
             # did not get needed prompt. Something wrong, exit out.
@@ -134,6 +142,8 @@ def do_serial():
         sleep(1)  # wait in case of baud issues.
         # read the waiting buffer
         input_data = serial_con.read(serial_con.inWaiting())
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
 
         if CONFIG_PUSH_SUCCESS not in input_data:
             # did not get needed prompt. Something wrong, exit out.
@@ -170,6 +180,9 @@ def do_telnet(host, port):
         sleep(TELNET_DEFAULT_WAIT * .20)  # 1/5 of default wait
         # read the waiting buffer
         input_data = telnet_con.read_until(CONFIG_PROMPT_READY, timeout=(TELNET_DEFAULT_WAIT * .80))
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
+
         # parse response and see if we are at VFF prompt.
         if CONFIG_PROMPT_READY in input_data:
             print("[VFF_PUSH_TELNET] {0} Got config prompt. Continuing.".format(wait_count))
@@ -193,6 +206,9 @@ def do_telnet(host, port):
     telnet_con.write("hidden\n")
     sleep(1)  # wait in case of baud issues.
     input_data = telnet_con.read_until(CONFIG_PROMPT_READY, timeout=TELNET_DEFAULT_WAIT)
+    if isinstance(input_data, bytes):
+        input_data = input_data.decode('UTF-8')
+
     data_l = input_data.split("\n")
     parseline = []
     for line in data_l:
@@ -211,6 +227,8 @@ def do_telnet(host, port):
     sleep(1)  # wait in case of baud issues.
     # read the waiting buffer
     input_data = telnet_con.read_until(CONFIG_PUSH_READY, timeout=TELNET_DEFAULT_WAIT)
+    if isinstance(input_data, bytes):
+        input_data = input_data.decode('UTF-8')
 
     if CONFIG_PUSH_READY not in input_data:
         # did not get needed prompt. Something wrong, exit out.
@@ -226,6 +244,8 @@ def do_telnet(host, port):
     sleep(1)  # wait in case of baud issues.
     # read the waiting buffer
     input_data = telnet_con.read_until(CONFIG_PUSH_SUCCESS, timeout=TELNET_DEFAULT_WAIT)
+    if isinstance(input_data, bytes):
+        input_data = input_data.decode('UTF-8')
 
     if CONFIG_PUSH_SUCCESS not in input_data:
         # did not get needed prompt. Something wrong, exit out.
@@ -257,6 +277,9 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
         sleep(pex_default_wait * .20)  # 1/5 of default wait
         # wait for the prompt.
         input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
+
         # parse response and see if we are at VFF prompt.
         if CONFIG_PROMPT_READY in input_data:
             print("[VFF_PUSH_{0}] {1} Got config prompt. Continuing.".format(ntype, wait_count))
@@ -280,6 +303,9 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
     pexpect_con.send("hidden\n")
     sleep(1)  # wait in case of baud issues.
     input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+    if isinstance(input_data, bytes):
+        input_data = input_data.decode('UTF-8')
+
     data_l = input_data.split("\n")
     parseline = []
     for line in data_l:
@@ -297,10 +323,15 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
 
     # read the waiting buffer
     input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+    if isinstance(input_data, bytes):
+        input_data = input_data.decode('UTF-8')
 
     if CONFIG_PUSH_READY in input_data:
         # did not get needed prompt. Something wrong, exit out.
         input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
+
         print("[VFF_PUSH_{0}] ERROR: did not get config push"
               " ready prompt. Last input buffer: \n{1}\n".format(ntype, input_data))
         print("[VFF_PUSH_{0}] ERROR: End input buffer. Exiting.".format(ntype))
@@ -313,10 +344,15 @@ def do_pexpect(pexpect_con, ntype, pex_default_timeout, pex_default_wait, pex_de
 
     # read the waiting buffer
     input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+    if isinstance(input_data, bytes):
+        input_data = input_data.decode('UTF-8')
 
     if CONFIG_PUSH_SUCCESS in input_data:
         # did not get needed prompt. Something wrong, exit out.
         input_data = pexpect_con.read_nonblocking(size=8192, timeout=pex_default_wait)
+        if isinstance(input_data,bytes):
+            input_data = input_data.decode('UTF-8')
+
         print("[VFF_PUSH_{0}] ERROR: did not get config push success"
               " prompt. Last input buffer: \n{1}\n".format(ntype, input_data))
         print("[VFF_PUSH_{0}] ERROR: End input buffer. Exiting.".format(ntype))
